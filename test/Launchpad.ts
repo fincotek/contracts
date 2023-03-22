@@ -3,7 +3,6 @@ import { deployContract } from 'ethereum-waffle';
 import ERC20 from '../build/ERC20.json';
 import Launchpad from '../build/Launchpad.json';
 import LaunchpadContract from '../build/LaunchpadContract.json';
-import { formatEther } from '@ethersproject/units/src.ts';
 
 const defaultParams = {
   tokenSupply: utils.parseEther('10000'),

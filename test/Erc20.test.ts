@@ -36,13 +36,13 @@ describe('ERC20', () => {
 
   it('totalSupply', async () => {
     expect(await erc20.totalSupply()).to.equal(
-      totalSupply.mul((10 ** decimals).toString())
+      totalSupply.mul((10 ** decimals.toNumber()).toString())
     );
   });
 
   it('owner balance', async () => {
     expect(await erc20.balanceOf(wallet.address)).to.equal(
-      totalSupply.mul((10 ** decimals).toString())
+      totalSupply.mul((10 ** decimals.toNumber()).toString())
     );
   });
 
