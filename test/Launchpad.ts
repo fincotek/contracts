@@ -71,13 +71,7 @@ export async function deployLaunchpadContract(
   launchpad: Contract,
   params: Params
 ) {
-  const erc20: Contract = await deployContract(wallet, ERC20, [
-    wallet.address,
-    'Test',
-    'TEST',
-    utils.parseUnits('18', 'wei'),
-    utils.parseEther('10000000'),
-  ]);
+  const erc20: Contract = await deployContract(wallet, ERC20);
   const {
     tokenSupply,
     softCap,

@@ -20,18 +20,12 @@ contract ERC20 is IERC20 {
         _;
     }
 
-    constructor(
-        address _owner,
-        string memory _name,
-        string memory _symbol,
-        uint8 _decimals,
-        uint _totalSupply
-    ) {
-        owner = _owner;
-        name = _name;
-        symbol = _symbol;
-        decimals = _decimals;
-        totalSupply = _totalSupply * 10 ** decimals;
+    constructor() {
+        owner = msg.sender;
+        name = "Test";
+        symbol = "TEST";
+        decimals = 18;
+        totalSupply = 10000000 * 10 ** decimals;
         balanceOf[msg.sender] = totalSupply;
         emit Transfer(address(0), msg.sender, totalSupply);
     }
