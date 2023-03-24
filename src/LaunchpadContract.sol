@@ -26,6 +26,7 @@ contract LaunchpadContract {
     uint256 public endDate;
     bool public burn;
 
+    uint256 public _sent;
     address[] public contributors;
     mapping(address => uint256) public balanceOf;
 
@@ -77,6 +78,10 @@ contract LaunchpadContract {
         return _rate(tokenSupply, hardCap);
     }
 
+    function isSent() public view returns (bool) {
+        return _sent == contributors.length;
+    }
+
     function status() public view returns (string memory) {
         if (_status == Status.Success) {
             return 'Success';
@@ -105,51 +110,68 @@ contract LaunchpadContract {
     }
 
     function cancel() external authorized {
-        _refund();
         _status = Status.Cancel;
         emit Cancel(token);
     }
 
     function finalize() external authorized {
-        IERC20 erc20 = IERC20(token);
-        address contractAddress = address(this);
-
-        if (total <= softCap) {
-            _refund();
+        require(_status == Status.Progress);
+        if (total < softCap) {
             _status = Status.Fail;
             emit Fail(token);
         } else {
-            for (uint256 i = 0; i < contributors.length; i++) {
+            _status = Status.Success;
+            emit Success(token, address(this).balance);
+        }
+    }
+
+    function send() external {
+        require(_status != Status.Progress, "is progress");
+        require(!isSent(), "is sent");
+        IERC20 erc20 = IERC20(token);
+        uint256 max = contributors.length;
+        uint256 MAX = 256;
+        if (max > MAX && max - MAX > _sent) {
+            max = _sent + MAX;
+        }
+        for (uint256 i = _sent; i < max; i++) {
+            if (_isFail()) {
+                payable(contributors[i]).transfer(balanceOf[contributors[i]]);
+            } else {
                 erc20.transfer(contributors[i], tokenOf(contributors[i]));
             }
-            _status = Status.Success;
-            emit Success(token, contractAddress.balance);
-            payable(creator).transfer(
-                _rate(contractAddress.balance, 20) / 10 ** 18
-            );
-            payable(owner).transfer(contractAddress.balance);
+            _sent = i + 1;
         }
+    }
 
-        uint256 tokenBalance = erc20.balanceOf(contractAddress);
-        if (tokenBalance > 0) {
-            if (burn) {
-                erc20.burn(tokenBalance);
-                emit Burn(token, tokenBalance);
-            } else {
-                erc20.transfer(owner, erc20.balanceOf(contractAddress));
+    function withdraw() external {
+        require(_status != Status.Progress, "is progress");
+        require(isSent(), "not sent");
+        IERC20 erc20 = IERC20(token);
+        address contractAddress = address(this);
+        require(contractAddress.balance > 0 || erc20.balanceOf(contractAddress) > 0, "balance is null");
+        if (_isFail()) {
+            erc20.transfer(owner, tokenSupply);
+        } else {
+            payable(creator).transfer(_rate(contractAddress.balance, 20) / 10 ** 18);
+            payable(owner).transfer(contractAddress.balance);
+            uint256 tokenBalance = erc20.balanceOf(contractAddress);
+            if (tokenBalance > 0) {
+                if (burn) {
+                    erc20.burn(tokenBalance);
+                    emit Burn(token, tokenBalance);
+                } else {
+                    erc20.transfer(owner, erc20.balanceOf(contractAddress));
+                }
             }
         }
     }
 
-    function _refund() private {
-        IERC20 erc20 = IERC20(token);
-        for (uint256 i = 0; i < contributors.length; i++) {
-            payable(contributors[i]).transfer(balanceOf[contributors[i]]);
-        }
-        erc20.transfer(owner, tokenSupply);
+    function _isFail() private view returns (bool) {
+        return _status == Status.Cancel || _status == Status.Fail;
     }
 
-    function _rate(uint256 value1, uint256 value2) private pure returns (uint) {
+    function _rate(uint256 value1, uint256 value2) private pure returns (uint256) {
         return (value1 * 10 ** 18) / value2;
     }
 }

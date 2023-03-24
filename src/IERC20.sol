@@ -23,7 +23,7 @@ interface IERC20 {
 
     function approve(address spender, uint256 amount) external returns (bool);
 
-    function burn(uint amount) external;
+    function burn(uint256 amount) external;
 
     function transferFrom(
         address from,

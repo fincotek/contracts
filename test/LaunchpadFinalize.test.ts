@@ -62,18 +62,15 @@ describe('Launchpad finalize', () => {
     const balance1 = (await wallet1.getBalance()).add(fee);
     const balance2 = (await wallet2.getBalance()).add(total.sub(fee));
     const walletToken = await erc20.balanceOf(wallet2.address);
-    const response = await launchpadContract.finalize().catch((e) => {
-      console.error(e);
-      throw e;
-    });
-
-    const tx = await response.wait();
-
-    const gas = tx.cumulativeGasUsed.mul(tx.effectiveGasPrice);
+    let gas = await launchpadContract.finalize().then(response => {
+      return response.wait();
+    }).then(tx => tx.cumulativeGasUsed.mul(tx.effectiveGasPrice));
 
     expect(await launchpadContract.status()).to.equal('Success');
-    expect(await wallet1.getBalance()).to.equal(balance1.sub(gas));
-    expect(await wallet2.getBalance()).to.equal(balance2);
+
+    gas = gas.add(await launchpadContract.send().then(response => {
+      return response.wait();
+    }).then(tx => tx.cumulativeGasUsed.mul(tx.effectiveGasPrice)));
 
     let sum;
     for (const index in wallets) {
@@ -90,8 +87,15 @@ describe('Launchpad finalize', () => {
         .to.equal(token)
         .to.equal(await launchpadContract.tokenOf(wallet.address));
     }
+
+    gas = gas.add(await launchpadContract.withdraw().then(response => {
+      return response.wait();
+    }).then(tx => tx.cumulativeGasUsed.mul(tx.effectiveGasPrice)));
+
     const value = (await erc20.balanceOf(wallet2.address)).sub(walletToken);
     expect(tokenSupply).to.equal(sum.add(value));
+    expect(await wallet1.getBalance()).to.equal(balance1.sub(gas));
+    expect(await wallet2.getBalance()).to.equal(balance2);
 
     let error: Error;
     try {
@@ -155,6 +159,8 @@ describe('Launchpad finalize', () => {
     expect(await launchpadContract.owner()).to.equal(wallet2.address);
 
     await launchpadContract.cancel();
+    await launchpadContract.send();
+    await launchpadContract.withdraw();
 
     expect(await launchpadContract.status()).to.equal('Cancel');
     expect(await erc20.balanceOf(wallet2.address)).to.equal(
@@ -213,6 +219,8 @@ describe('Launchpad finalize', () => {
     expect(await launchpadContract.owner()).to.equal(wallet2.address);
 
     await launchpadContract.finalize();
+    await launchpadContract.send();
+    await launchpadContract.withdraw();
 
     expect(await launchpadContract.status()).to.equal('Fail');
     expect(await erc20.balanceOf(wallet2.address)).to.equal(

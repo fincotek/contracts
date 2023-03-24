@@ -8,9 +8,9 @@ contract ERC20 is IERC20 {
     using SafeMath for uint256;
 
     address public owner;
-    uint public totalSupply;
-    mapping(address => uint) public balanceOf;
-    mapping(address => mapping(address => uint)) public allowance;
+    uint256 public totalSupply;
+    mapping(address => uint256) public balanceOf;
+    mapping(address => mapping(address => uint256)) public allowance;
     string public name;
     string public symbol;
     uint8 public decimals;
@@ -30,14 +30,14 @@ contract ERC20 is IERC20 {
         emit Transfer(address(0), msg.sender, totalSupply);
     }
 
-    function transfer(address recipient, uint amount) external returns (bool) {
+    function transfer(address recipient, uint256 amount) external returns (bool) {
         balanceOf[msg.sender] -= amount;
         balanceOf[recipient] += amount;
         emit Transfer(msg.sender, recipient, amount);
         return true;
     }
 
-    function approve(address spender, uint amount) external returns (bool) {
+    function approve(address spender, uint256 amount) external returns (bool) {
         _approve(msg.sender, spender, amount);
         return true;
     }
@@ -45,7 +45,7 @@ contract ERC20 is IERC20 {
     function transferFrom(
         address sender,
         address recipient,
-        uint amount
+        uint256 amount
     ) external returns (bool) {
         allowance[sender][msg.sender] -= amount;
         balanceOf[sender] -= amount;
@@ -81,13 +81,13 @@ contract ERC20 is IERC20 {
         return true;
     }
 
-    function mint(uint amount) external onlyOwner {
+    function mint(uint256 amount) external onlyOwner {
         balanceOf[msg.sender] += amount;
         totalSupply += amount;
         emit Transfer(address(0), msg.sender, amount);
     }
 
-    function burn(uint amount) external {
+    function burn(uint256 amount) external {
         balanceOf[msg.sender] -= amount;
         totalSupply -= amount;
         emit Transfer(msg.sender, address(0), amount);

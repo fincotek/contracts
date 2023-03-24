@@ -9,8 +9,6 @@ use(solidity);
 describe('Launchpad hard cap', () => {
   const wallets = new MockProvider().getWallets();
   const [wallet] = wallets;
-  let erc20: Contract;
-  let launchpad: Contract;
   let launchpadContractAddress: string;
 
   const hardCap = utils.parseEther('1');
@@ -19,8 +17,6 @@ describe('Launchpad hard cap', () => {
     const data = await deploy(wallet, {
       hardCap,
     });
-    erc20 = data.erc20;
-    launchpad = data.launchpad;
     launchpadContractAddress = data.launchpadContractAddress;
   });
 

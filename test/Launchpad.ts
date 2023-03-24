@@ -106,3 +106,9 @@ export async function deployLaunchpadContract(
     launchpadContractAddress,
   };
 }
+
+export async function launchpadSend(contract: Contract) {
+  while (!await contract.isSent()) {
+    await contract.send();
+  }
+}
