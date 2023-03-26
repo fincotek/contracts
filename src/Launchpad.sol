@@ -25,7 +25,7 @@ contract Launchpad {
         uint256 endDate,
         bool burn
     ) public payable {
-        require(msg.value >= fee, 'Fee');
+        require(msg.value >= fee, 'Invalid fee');
         LaunchpadContract launchpadContract = new LaunchpadContract(
             msg.sender,
             owner,

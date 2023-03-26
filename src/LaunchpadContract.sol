@@ -94,17 +94,17 @@ contract LaunchpadContract {
         } else if (_status == Status.Fail) {
             return 'Fail';
         }
-        return block.timestamp < startDate ? 'Coming' : 'Progress';
+        return 'Progress';
     }
 
     function buy() external payable {
         uint256 value = balanceOf[msg.sender] + msg.value;
-        require(_status == Status.Progress, 'status != progress');
-        require(value >= minBuy, 'value < min buy');
-        require(value <= maxBuy, 'value > max buy');
-        require(block.timestamp >= startDate, 'timestamp < start date');
-        require(block.timestamp <= endDate, 'timestamp > end date');
-        require((total + value) <= hardCap, 'balance + value > hard cap');
+        require(_status == Status.Progress, 'Launchpad is close');
+        require(value >= minBuy, 'Value is less than min buy');
+        require(value <= maxBuy, 'Value is greater than max buy');
+        require(block.timestamp >= startDate, 'Timestamp is less than start date');
+        require(block.timestamp <= endDate, 'Timestamp is greater than end date');
+        require(address(this).balance <= hardCap, 'Balance is greater than hard cap');
         total += msg.value;
         if (balanceOf[msg.sender] == 0) {
             _contributors.push(msg.sender);
@@ -120,7 +120,7 @@ contract LaunchpadContract {
 
     function finalize() external authorized {
         require(_status == Status.Progress);
-        if (total < softCap) {
+        if (address(this).balance < softCap) {
             _status = Status.Fail;
             emit Fail(token);
         } else {
@@ -130,8 +130,8 @@ contract LaunchpadContract {
     }
 
     function send() external {
-        require(_status != Status.Progress, "is progress");
-        require(!isSent(), "is sent");
+        require(_status != Status.Progress, 'Launchpad in progress');
+        require(!isSent(), 'Tokens sent');
         IERC20 erc20 = IERC20(token);
         uint256 max = _contributors.length;
         uint256 MAX = 256;
@@ -149,11 +149,11 @@ contract LaunchpadContract {
     }
 
     function withdraw() external {
-        require(_status != Status.Progress, "is progress");
-        require(isSent(), "not sent");
+        require(_status != Status.Progress, 'Launchpad in progress');
+        require(isSent(), 'Tokens not sent');
         IERC20 erc20 = IERC20(token);
         address contractAddress = address(this);
-        require(contractAddress.balance > 0 || erc20.balanceOf(contractAddress) > 0, "balance is null");
+        require(contractAddress.balance > 0 || erc20.balanceOf(contractAddress) > 0, 'Balance is null');
         if (_isFail()) {
             erc20.transfer(owner, tokenSupply);
         } else {
