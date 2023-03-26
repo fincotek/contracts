@@ -5243,9 +5243,9 @@
           "parameterSlots": 3,
           "returnSlots": 0
         },
-        "@add_1201": {
+        "@add_1210": {
           "entryPoint": 3344,
-          "id": 1201,
+          "id": 1210,
           "parameterSlots": 2,
           "returnSlots": 1
         },
@@ -5309,9 +5309,9 @@
           "parameterSlots": 0,
           "returnSlots": 0
         },
-        "@sub_1244": {
+        "@sub_1253": {
           "entryPoint": 3438,
-          "id": 1244,
+          "id": 1253,
           "parameterSlots": 3,
           "returnSlots": 1
         },

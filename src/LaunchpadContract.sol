@@ -27,7 +27,7 @@ contract LaunchpadContract {
     bool public burn;
 
     uint256 public _sent;
-    address[] public contributors;
+    address[] private _contributors;
     mapping(address => uint256) public balanceOf;
 
     event Buy(address indexed from, uint256 value);
@@ -78,8 +78,12 @@ contract LaunchpadContract {
         return _rate(tokenSupply, hardCap);
     }
 
+    function contributors() public view returns (uint256) {
+        return _contributors.length;
+    }
+
     function isSent() public view returns (bool) {
-        return _sent == contributors.length;
+        return _sent == contributors();
     }
 
     function status() public view returns (string memory) {
@@ -103,7 +107,7 @@ contract LaunchpadContract {
         require((total + value) <= hardCap, 'balance + value > hard cap');
         total += msg.value;
         if (balanceOf[msg.sender] == 0) {
-            contributors.push(msg.sender);
+            _contributors.push(msg.sender);
         }
         balanceOf[msg.sender] += msg.value;
         emit Buy(msg.sender, msg.value);
@@ -129,16 +133,16 @@ contract LaunchpadContract {
         require(_status != Status.Progress, "is progress");
         require(!isSent(), "is sent");
         IERC20 erc20 = IERC20(token);
-        uint256 max = contributors.length;
+        uint256 max = _contributors.length;
         uint256 MAX = 256;
         if (max > MAX && max - MAX > _sent) {
             max = _sent + MAX;
         }
         for (uint256 i = _sent; i < max; i++) {
             if (_isFail()) {
-                payable(contributors[i]).transfer(balanceOf[contributors[i]]);
+                payable(_contributors[i]).transfer(balanceOf[_contributors[i]]);
             } else {
-                erc20.transfer(contributors[i], tokenOf(contributors[i]));
+                erc20.transfer(_contributors[i], tokenOf(_contributors[i]));
             }
             _sent = i + 1;
         }
