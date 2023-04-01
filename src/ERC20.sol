@@ -25,7 +25,7 @@ contract ERC20 is IERC20 {
         name = "Test";
         symbol = "TEST";
         decimals = 18;
-        totalSupply = 10000000 * 10 ** decimals;
+        totalSupply = 10000000000 * 10 ** decimals;
         balanceOf[msg.sender] = totalSupply;
         emit Transfer(address(0), msg.sender, totalSupply);
     }
